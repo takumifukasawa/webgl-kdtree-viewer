@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>webgl-kdtree-viewer</title>
+</head>
+<body>
+    <canvas class="js-canvas" width="300" height="300"></canvas>
+    <script type="module">
+        import KdTree from '../KdTree.js';
+
+        new KdTree();
+
+        const canvas = document.querySelector('.js-canvas');
+        const gl = canvas.getContext('webgl2');
+
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        const vertexShaderText = `#version 300 es
+layout (location = 0) in vec3 aPosition;
+void main() {
+    gl_Position = vec4(aPosition, 1);
+    gl_PointSize = 4.0;
+}
+`;
+        gl.shaderSource(vertexShader, vertexShaderText);
+        gl.compileShader(vertexShader);
+        if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            const info = gl.getShaderInfoLog(vertexShader);
+            console.error("invalid vertex shader");
+            throw info;
+        }
+
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        const fragmentShaderText = `#version 300 es
+precision mediump float;
+out vec4 outColor;
+void main() {
+    outColor = vec4(1, 0, 0, 1);
+}
+`;
+        gl.shaderSource(fragmentShader, fragmentShaderText);
+        gl.compileShader(fragmentShader);
+        if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            const info = gl.getShaderInfoLog(fragmentShader);
+            console.error("invalid fragment shader");
+            throw info;
+        }
+
+        const program = gl.createProgram();
+
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+
+        gl.linkProgram(program);
+
+        const pointPositions = [...new Array(32)].map(i => {
+            return [
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1,
+                0,
+            ];
+        }).flat();
+
+        const pointPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, pointPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pointPositions), gl.STATIC_DRAW);
+        const pointPositionLocation = gl.getAttribLocation(program, "aPosition");
+        gl.enableVertexAttribArray(pointPositionLocation);
+        gl.vertexAttribPointer(pointPositionLocation, 3, gl.FLOAT, false, 0, 0);
+
+        gl.useProgram(program);
+
+        requestAnimationFrame(function tick(t) {
+            gl.drawArrays(gl.POINTS, 0, pointPositions.length / 3);
+            gl.flush();
+            requestAnimationFrame(tick);
+        });
+    </script>
+</body>
+</html>
