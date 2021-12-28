@@ -1,18 +1,20 @@
 class Node {
     value = null;
+    axis = null;
     leftChild = null;
     rightChild = null;
-    constructor(value) {
+    constructor(value, axis) {
         this.value = value;
+        this.axis = axis;
     }
 }
 
 export default class KdTree {
     #root;
 
-    constructor(pointList, dimension) {
-        const axes = ["x", "y", "z"].splice(0, dimension);
-        const iter = KdTree.iter(pointList, axes, 0);
+    constructor(pointList) {
+        const axes = Object.getOwnPropertyNames(pointList[0]);
+        const iter = KdTree.iter(pointList, axes);
         this.#root = iter;
     }
 
@@ -26,24 +28,22 @@ export default class KdTree {
             return [
                 sorted[index],
                 sorted,
-                index
             ];
         }
-        const baseIndex = sorted.length / 2;
-        const m1 = sorted[baseIndex - 1];
-        const m2 = sorted[baseIndex];
-        const medianValue = axes.reduce((prev, current, v) => {
-            prev[current] = (m1[current] + m2[current]) / 2;
-            return prev;
-        }, {});
+        // const baseIndex = sorted.length / 2;
+        // const m1 = sorted[baseIndex - 1];
+        // const m2 = sorted[baseIndex];
+        // const medianValue = axes.reduce((prev, current, v) => {
+        //     prev[current] = (m1[current] + m2[current]) / 2;
+        //     return prev;
+        // }, {});
         return [
-            medianValue,
+            sorted[sorted.length / 2],
             sorted,
-            baseIndex - 0.5
         ];
     }
 
-    static iter(list, axes, depth) {
+    static iter(list, axes, depth = 0) {
         const axisIndex = depth % axes.length;
         const axis = axes[axisIndex];
         const [median, sortedList] = KdTree.medianFunc(list, axes, axis);
@@ -54,7 +54,7 @@ export default class KdTree {
                 : Math.floor(sortedList.length / 2)
         );
         const afterList = sortedList;
-        const node = new Node(median);
+        const node = new Node(median, axis);
         if(beforeList.length === 0) {
             // NOTE: 0 のときにわざわざこの処理をする必要はなさそう
             node.leftChild = null;
