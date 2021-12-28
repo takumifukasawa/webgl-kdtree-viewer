@@ -44,9 +44,6 @@ export default class KdTree {
     }
 
     static iter(list, axes, depth) {
-        if(list.length < 1) {
-            return null;
-        }
         const axisIndex = depth % axes.length;
         const axis = axes[axisIndex];
         const [median, sortedList] = KdTree.medianFunc(list, axes, axis);
@@ -58,12 +55,18 @@ export default class KdTree {
         );
         const afterList = sortedList;
         const node = new Node(median);
-        if(beforeList.length === 1) {
+        if(beforeList.length === 0) {
+            // NOTE: 0 のときにわざわざこの処理をする必要はなさそう
+            node.leftChild = null;
+        } else if(beforeList.length === 1) {
             node.leftChild = new Node(beforeList[0]);
         } else {
             node.leftChild = KdTree.iter(beforeList, axes, depth + 1);
         }
-        if(afterList.length === 1) {
+        if(afterList.length === 0) {
+            // NOTE: 0 のときにわざわざこの処理をする必要はなさそう
+            node.rightChild = null;
+        } else if(afterList.length === 1) {
             node.rightChild = new Node(afterList[0]);
         } else {
             node.rightChild = KdTree.iter(afterList, axes, depth + 1);
