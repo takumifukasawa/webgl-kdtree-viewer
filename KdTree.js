@@ -30,15 +30,18 @@ export default class KdTree {
                 sorted,
             ];
         }
-        // const baseIndex = sorted.length / 2;
-        // const m1 = sorted[baseIndex - 1];
-        // const m2 = sorted[baseIndex];
-        // const medianValue = axes.reduce((prev, current, v) => {
-        //     prev[current] = (m1[current] + m2[current]) / 2;
-        //     return prev;
-        // }, {});
+        // 中間値を分割する場合
+        const baseIndex = sorted.length / 2;
+        const m1 = sorted[baseIndex - 1];
+        const m2 = sorted[baseIndex];
+        const medianValue = axes.reduce((prev, current, v) => {
+            prev[current] = (m1[current] + m2[current]) / 2;
+            return prev;
+        }, {});
+        // 中間値を平均化しない場合
+        // const medianValue = sorted[sorted.length / 2];
         return [
-            sorted[sorted.length / 2],
+            medianValue,
             sorted,
         ];
     }
@@ -82,7 +85,28 @@ export default class KdTree {
 
     findArea(targetPoint) {
         const find = (currentNode, target) => {
+            // 子node
+            if(!currentNode.axis) {
+                return currentNode;
+            }
+
+            if(!currentNode.leftChild) {
+                return find(currentNode.rightChild)
+            }
+            if(!currentNode.rightChild) {
+                return find(currentNode.leftChild);
+            }
+
+            const axis = currentNode.axis; 
+            console.log(axis, target[axis], currentNode.splittingValue[axis])
+
+            if(target[axis] <= currentNode.splittingValue[axis]) {
+                return find(currentNode.leftChild, target);
+            } else {
+                return find(currentNode.rightChild, target);
+            }
         }
-        find(this.#axes, target);
+        const node = find(this.#root, targetPoint);
+        return node;
     }
 }
