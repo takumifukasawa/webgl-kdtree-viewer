@@ -51,10 +51,12 @@ export default class KdTree {
             0,
             sortedList.length % 2 == 0
                 ? sortedList.length / 2
-                : Math.floor(sortedList.length / 2)
+                : Math.ceil(sortedList.length / 2)
         );
         const afterList = sortedList;
         const node = new Node(median, axis);
+        console.log("==============");
+        console.log(median, list, beforeList, afterList)
         if(beforeList.length === 0) {
             // NOTE: 0 のときにわざわざこの処理をする必要はなさそう
             node.leftChild = null;
