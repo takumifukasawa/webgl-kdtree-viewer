@@ -165,10 +165,6 @@ export default class KdTree {
         //     }
         // }
 
-        // console.log("=====================")
-        // console.log("nearest area", nearestArea)
-        // console.log("=====================")
-
         let nearestNode = null;
         let minDistance = Infinity; 
 
@@ -180,9 +176,17 @@ export default class KdTree {
                 nearestNode = node;
                 minDistance = distance;
             }
+            return node;
         }
 
         checkNearest(targetPoint);
+
+        console.log("=====================")
+        console.log("initial")
+        console.log("nearest node", nearestNode)
+        console.log("min distance", minDistance)
+        console.log("=====================")
+
 
         const find = (q, node) => {
             const check = (q, parentNode) => {
@@ -191,13 +195,14 @@ export default class KdTree {
                 console.log(parentNode.axis, q[parentNode.axis], parentNode.splittingValue[parentNode.axis], minDistance)
                 console.log(
                     "branch",
-                    [parentNode.axis] < parentNode.splittingValue[parentNode.axis],
+                    q[parentNode.axis] <= parentNode.splittingValue[parentNode.axis],
+                    q[parentNode.axis] + minDistance > parentNode.splittingValue[parentNode.axis],
                     q[parentNode.axis] - minDistance <= parentNode.splittingValue[parentNode.axis]
                 )
-                if(q[parentNode.axis] < parentNode.splittingValue[parentNode.axis]) {
+                if(q[parentNode.axis] <= parentNode.splittingValue[parentNode.axis]) {
                     if(q[parentNode.axis] + minDistance > parentNode.splittingValue[parentNode.axis]) {
-                        console.log(parentNode.parent)
                         if(!parentNode.parent) {
+                            console.log("last node and calc distance")
                             const distance = calcDistance(q, parentNode.splittingValue);
                             if(distance < minDistance) {
                                 nearestNode = node;
@@ -205,8 +210,11 @@ export default class KdTree {
                             }
                             return;
                         }
+                        console.log("check last node")
                         // TODO: branch or leaf
-                        return checkNearest(q, parentNode.rightChild);
+                        const lastNode = checkNearest(q, parentNode.rightChild);
+                        console.log("hogehoge", lastNode.parent)
+                        return check(q, lastNode.parent);
                         // const node = this.findNearestArea(q, parentNode.rightChild);
                         // // const node = tparentNode.rightChild;
                         // const distance = calcDistance(q, node.point);
@@ -217,9 +225,11 @@ export default class KdTree {
                         // return find(q, parentNode);
                     } else {
                         if(!parentNode.parent) {
+                            console.log("last node")
                             return;
                         } 
-                        return find(q, parentNode.parent);
+                        console.log("check parent node")
+                        return check(q, parentNode.parent);
                     }
                 } else {
                     if(q[parentNode.axis] - minDistance <= parentNode.splittingValue[parentNode.axis]) {
@@ -234,7 +244,8 @@ export default class KdTree {
                         // TODO: branch or leaf
                         // const node = this.findNearestArea(q, parentNode.leftChild);
                         // const node = parentNode.leftChild;
-                        return checkNearest(q, parentNode.leftChild);
+                        const lastNode = checkNearest(q, parentNode.leftChild);
+                        return check(q, lastNode.parent);
                         // const distance = calcDistance(q, node.point);
                         // find(q, nearest.node);
                         // console.log("hogehoge", node, node.point, distance)
@@ -247,7 +258,7 @@ export default class KdTree {
                         if(!parentNode.parent) {
                             return;
                         } 
-                        return find(q, parentNode);
+                        return check(q, parentNode.parent);
                     }
                 }
             }
